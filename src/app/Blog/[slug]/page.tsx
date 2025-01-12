@@ -130,14 +130,12 @@ type BlogPost = {
 
 // Define the Props type for the component, expecting a `slug` in params
 type Props = {
-  params: { slug: string };
+  params: { slug: string }; 
 };
 
 const BlogPostPage = async ({ params }: Props) => {
-  // Ensure params.slug is available and await its value
-  const { slug } = await params;  // Ensure slug is awaited
-
-  if (!slug) {
+  // Ensure params.slug is defined
+  if (!params?.slug) {
     return <div>Invalid slug!</div>;
   }
 
@@ -152,7 +150,7 @@ const BlogPostPage = async ({ params }: Props) => {
   }`;
 
   // Fetch the post data
-  const post = await client.fetch(query, { slug });
+  const post = await client.fetch(query, { slug: params.slug });
 
   if (!post) {
     return <div>Post not found!</div>; // Handle case where no post is found
