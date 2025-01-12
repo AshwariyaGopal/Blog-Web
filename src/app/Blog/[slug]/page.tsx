@@ -103,14 +103,10 @@
 
 // export default BlogPostPage;
 
-
-
-
-
-
 import { urlFor } from '../../../sanity/lib/image'; // Import the urlFor function
 import { client } from '../../../sanity/lib/client'; 
 import { PortableText } from "@portabletext/react";
+import { NextPage } from 'next'; // Import NextPage
 
 // Define the types for Author and BlogPost
 type Author = {
@@ -130,10 +126,10 @@ type BlogPost = {
 
 // Define the Props type for the component, expecting a `slug` in params
 type Props = {
-  params: { slug: string }; 
+  params: { slug: string }; // This should be the correct type for Next.js dynamic routes
 };
 
-const BlogPostPage = async ({ params }: Props) => {
+const BlogPostPage: NextPage<Props> = async ({ params }) => {
   // Ensure params.slug is defined
   if (!params?.slug) {
     return <div>Invalid slug!</div>;
@@ -214,3 +210,4 @@ const BlogPostPage = async ({ params }: Props) => {
 };
 
 export default BlogPostPage;
+
