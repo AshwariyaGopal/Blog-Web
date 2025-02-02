@@ -534,8 +534,9 @@
 
 
 //now
-import { urlFor } from "../../../sanity/lib/image";
+// import { urlFor } from "../../../sanity/lib/image";
 import { client } from "../../../sanity/lib/client";
+import { urlFor } from "../../../sanity/lib/image";
 import { PortableText } from "@portabletext/react";
 import { Metadata } from "next"; // Correct import for Server Component
 
@@ -638,4 +639,3 @@ export default async function BlogPostPage({ params }: PageProps) {
     </div>
   );
 }
-
