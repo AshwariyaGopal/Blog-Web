@@ -640,107 +640,204 @@
 //   );
 // }
 
+// import { client } from "../../../sanity/lib/client";
+// import { urlFor } from "../../../sanity/lib/image";
+// import { PortableText } from "@portabletext/react";
+// import { Metadata } from "next"; // Correct import for Server Component
+
+// type Author = {
+//   bio?: string;
+//   image?: { asset?: { _ref?: string } };
+//   name?: string;
+// };
+
+// type BlogPost = {
+//   title: string;
+//   summary: string;
+//   image?: { asset?: { _ref?: string } };
+//   content: any;
+//   slug: string;
+//   author?: Author;
+// };
+
+// // Fetching the post
+// async function fetchPost(slug: string): Promise<BlogPost | null> {
+//   const query = `*[_type == "post" && slug.current == $slug][0]{
+//     title,
+//     summary,
+//     image,
+//     content,
+//     "slug": slug.current,
+//     author->{name, image, bio}
+//   }`;
+//   return client.fetch(query, { slug });
+// }
+
+// // Correct type for params (no Promise)
+// interface PageProps {
+//   params: { slug: string }; // Ensure this is a simple object
+// }
+
+// export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+//   const post = await fetchPost(params.slug);
+//   return {
+//     title: post?.title || "Post Not Found",
+//     // ... other metadata if needed
+//   };
+// }
+
+// export default async function BlogPostPage({ params }: PageProps) {
+//   const post = await fetchPost(params.slug);
+
+//   if (!post) {
+//     return <div className="text-center text-xl mt-10">Post not found!</div>;
+//   }
+
+//   const imageUrl = post?.image?.asset?._ref ? urlFor(post.image.asset._ref) : null;
+
+//   return (
+//     <div>
+//       <article className="mt-24 mb-24 px-2 2xl:px-12 flex flex-col gap-y-8">
+//         <h1 className="text-xl xs:text-3xl lg:text-5xl font-bold text-dark dark:text-light">
+//           {post?.title}
+//         </h1>
+
+//         {imageUrl && (
+//           <img src={imageUrl} alt={post?.title} width={1000} height={300} />
+//         )}
+
+//         <section>
+//           <h2 className="text-xl xs:text-2xl md:text-3xl font-bold uppercase text-accentDarkPrimary">
+//             Summary
+//           </h2>
+//           <p className="text-base md:text-xl leading-relaxed text-justify text-dark/80 dark:text-light/80">
+//             {post?.summary}
+//           </p>
+//         </section>
+
+//         <section className="px-2 sm:px-8 md:px-12 flex gap-2 xs:gap-4 sm:gap-6 items-start xs:items-center justify-start">
+//           {post?.author?.image?.asset?._ref && (
+//             <img
+//               src={urlFor(post.author.image.asset._ref)}
+//               alt={post?.author?.name || "Author"}
+//               width={100}
+//               height={100}
+//             />
+//           )}
+//           <div className="flex flex-col gap-1">
+//             {post?.author?.name ? (
+//               <h3 className="text-xl font-bold text-dark dark:text-light">
+//                 {post.author.name}
+//               </h3>
+//             ) : (
+//               <p className="italic text-xs xs:text-sm sm:text-base text-dark/80 dark:text-light/80">
+//                 {post?.author?.bio || "Bio not available"}
+//               </p>
+//             )}
+//           </div>
+//         </section>
+
+//         <section className="text-lg leading-normal text-dark/80 dark:text-light/80 prose-h4:text-accentDarkPrimary prose-h4:text-3xl prose-h4:font-bold prose-li:list-disc prose-li:list-inside prose-li:marker:text-accentDarkSecondary prose-strong:text-dark dark:prose-strong:text-white">
+//           <PortableText value={post?.content} />
+//         </section>
+//       </article>
+//     </div>
+//   );
+// }
+
+
+import Image from "next/image";
 import { client } from "../../../sanity/lib/client";
 import { urlFor } from "../../../sanity/lib/image";
 import { PortableText } from "@portabletext/react";
-import { Metadata } from "next"; // Correct import for Server Component
+//import { components } from "@/components/CustomComponent";
 
-type Author = {
-  bio?: string;
-  image?: { asset?: { _ref?: string } };
-  name?: string;
-};
+export const revalidate = 60; //seconds
 
-type BlogPost = {
-  title: string;
-  summary: string;
-  image?: { asset?: { _ref?: string } };
-  content: any;
-  slug: string;
-  author?: Author;
-};
-
-// Fetching the post
-async function fetchPost(slug: string): Promise<BlogPost | null> {
-  const query = `*[_type == "post" && slug.current == $slug][0]{
-    title,
-    summary,
-    image,
-    content,
-    "slug": slug.current,
-    author->{name, image, bio}
+ export async function generateStaticParams() {
+  const query = `*[_type=='post']{
+    "slug":slug.current
   }`;
-  return client.fetch(query, { slug });
+  const slugs = await client.fetch(query);
+  const slugRoutes = slugs.map((item:{slug:string})=>(
+    item.slug
+  ));
+  // console.log(slugRoutes)
+  return slugRoutes.map((slug:string)=>(
+    {slug}
+  ))
+  
 }
 
-// Correct type for params (no Promise)
-interface PageProps {
-  params: { slug: string }; // Ensure this is a simple object
-}
+// To create static pages for dynamic routes
+export default async function page({params:{slug}}:{params:{slug:string}}) {
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const post = await fetchPost(params.slug);
-  return {
-    title: post?.title || "Post Not Found",
-    // ... other metadata if needed
-  };
-}
+  const query = `*[_type=='post' && slug.current=="${slug}"]{
+    title,summary,image,content,
+      author->{bio,image,name}
+  }[0]`;
+  const post = await client.fetch(query);
+  // console.log(post);
 
-export default async function BlogPostPage({ params }: PageProps) {
-  const post = await fetchPost(params.slug);
 
-  if (!post) {
-    return <div className="text-center text-xl mt-10">Post not found!</div>;
-  }
-
-  const imageUrl = post?.image?.asset?._ref ? urlFor(post.image.asset._ref) : null;
 
   return (
-    <div>
-      <article className="mt-24 mb-24 px-2 2xl:px-12 flex flex-col gap-y-8">
-        <h1 className="text-xl xs:text-3xl lg:text-5xl font-bold text-dark dark:text-light">
-          {post?.title}
-        </h1>
+    <article className="mt-12 mb-24 px-2 2xl:px-12 flex flex-col gap-y-8">
 
-        {imageUrl && (
-          <img src={imageUrl} alt={post?.title} width={1000} height={300} />
-        )}
+      {/* Blog Title */}
+      <h1 className="text-xl xs:text-3xl lg:text-5xl font-bold text-dark dark:text-light mt-10">
+        {post.title}
+      </h1>
 
-        <section>
-          <h2 className="text-xl xs:text-2xl md:text-3xl font-bold uppercase text-accentDarkPrimary">
-            Summary
-          </h2>
-          <p className="text-base md:text-xl leading-relaxed text-justify text-dark/80 dark:text-light/80">
-            {post?.summary}
+      {/* Featured Image */}
+      <Image
+        src={urlFor(post.image)}
+        width={500}
+        height={500}
+        alt="AI for everyone"
+        className="rounded"
+      />
+
+      {/* Blog Summary Section */}
+      <section>
+      <h2 className="text-xl xs:text-2xl md:text-3xl font-bold uppercase text-accentDarkPrimary">
+        Summary
+      </h2>
+      <p className="text-base md:text-xl leading-relaxed text-justify text-dark/80 dark:text-light/80">
+        {post.summary}
+      </p>
+      </section>
+
+      {/* Author Section (Image & Bio) */}
+      <section className="px-2 sm:px-8 md:px-12 flex gap-2 xs:gap-4 sm:gap-6 items-start xs:items-center justify-start">
+        <Image
+          src={urlFor(post.author.image)}
+          width={200}
+          height={200}
+          alt="author"
+          className="object-cover rounded-full h-12 w-12 sm:h-24 sm:w-24"
+        />
+        <div className="flex flex-col gap-1">
+          <h3 className="text-xl font-bold text-dark dark:text-light">{post.author.name}</h3>
+          <p className="italic text-xs xs:text-sm sm:text-base text-dark/80 dark:text-light/80">
+            {post.author.bio}
           </p>
-        </section>
+        </div>
+      </section>
 
-        <section className="px-2 sm:px-8 md:px-12 flex gap-2 xs:gap-4 sm:gap-6 items-start xs:items-center justify-start">
-          {post?.author?.image?.asset?._ref && (
-            <img
-              src={urlFor(post.author.image.asset._ref)}
-              alt={post?.author?.name || "Author"}
-              width={100}
-              height={100}
-            />
-          )}
-          <div className="flex flex-col gap-1">
-            {post?.author?.name ? (
-              <h3 className="text-xl font-bold text-dark dark:text-light">
-                {post.author.name}
-              </h3>
-            ) : (
-              <p className="italic text-xs xs:text-sm sm:text-base text-dark/80 dark:text-light/80">
-                {post?.author?.bio || "Bio not available"}
-              </p>
-            )}
-          </div>
-        </section>
-
-        <section className="text-lg leading-normal text-dark/80 dark:text-light/80 prose-h4:text-accentDarkPrimary prose-h4:text-3xl prose-h4:font-bold prose-li:list-disc prose-li:list-inside prose-li:marker:text-accentDarkSecondary prose-strong:text-dark dark:prose-strong:text-white">
-          <PortableText value={post?.content} />
-        </section>
-      </article>
-    </div>
+      {/* Main Body of Blog */}
+      <section className="text-lg leading-normal text-dark/80 dark:text-light/80
+      prose-h4:text-accentDarkPrimary prose-h4:text-3xl prose-h4:font-bold
+      prose-li:list-disc prose-li:list-inside prose-li:marker:text-accentDarkSecondary
+      prose-strong:text-dark dark:prose-strong:text-white
+      
+      ">
+        <PortableText 
+        value={post.content} 
+        // components={components} 
+        />
+        
+      </section>
+    </article>
   );
 }
