@@ -1064,6 +1064,7 @@
 // }
 
 
+// src/app/Blog/[slug]/page.tsx
 import Image from "next/image";
 import { client } from "../../../sanity/lib/client";
 import { urlFor } from "../../../sanity/lib/image";
@@ -1088,7 +1089,8 @@ interface PageProps {
   };
 }
 
-export default async function Page({ params }: PageProps) {
+// Correcting the issue by passing an object instead of a promise
+const Page = async ({ params }: PageProps) => {
   const { slug } = params;
 
   // Fetch post data based on the slug
@@ -1144,3 +1146,5 @@ export default async function Page({ params }: PageProps) {
     </article>
   );
 }
+
+export default Page;
