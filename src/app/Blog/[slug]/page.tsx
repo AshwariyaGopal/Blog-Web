@@ -1341,12 +1341,13 @@
 // export default Page;
 
 
+// src/app/Blog/[slug]/page.tsx
 import Image from "next/image";
 import { client } from "../../../sanity/lib/client";
 import { urlFor } from "../../../sanity/lib/image";
 import { PortableText } from "@portabletext/react";
-import { Suspense } from "react"; // Import Suspense
-import { use } from "react";      // Import use
+import { Suspense } from "react";
+import { use } from "react";
 
 interface PageProps {
   params: { slug: string };
@@ -1361,86 +1362,85 @@ export async function generateStaticParams() {
   }));
 }
 
-const Page = ({ params }: PageProps) => { // No async here!
-  const { slug } = params;
+const Page = ({ params }: PageProps) => {
+  const { slug } = params as { slug: string }; // Type assertion here
 
   const query = `*[_type=='post' && slug.current == $slug]{
     title, summary, image, content,
     author->{bio, image, name}
   }[0]`;
 
-  const postPromise = client.fetch(query, { slug }); // Promise, but don't await
+  const postPromise = client.fetch(query, { slug });
 
   return (
-    <Suspense fallback={<div>Loading...</div>}> {/* Wrap with Suspense */}
+    <Suspense fallback={<div>Loading...</div>}>
       <PostContent postPromise={postPromise} />
     </Suspense>
   );
 };
 
 const PostContent = ({ postPromise }: { postPromise: Promise<any> }) => {
-  const post = use(postPromise); // Use the use() hook to get the post data
+    const post = use(postPromise);
 
-  if (!post) {
+    if (!post) {
+        return (
+            <div className="text-center text-red-500">
+                <h2>Post Not Found</h2>
+                <p>Sorry, the requested post does not exist.</p>
+            </div>
+        );
+    }
+
     return (
-      <div className="text-center text-red-500">
-        <h2>Post Not Found</h2>
-        <p>Sorry, the requested post does not exist.</p>
-      </div>
+        <article className="mt-12 mb-24 px-2 2xl:px-12 flex flex-col gap-y-8">
+            <h1 className="text-xl xs:text-3xl lg:text-5xl font-bold text-dark dark:text-light mt-10">
+                {post.title}
+            </h1>
+
+            {post.image && (
+                <Image
+                    src={urlFor(post.image)}
+                    width={500}
+                    height={500}
+                    alt="Featured image"
+                    className="rounded"
+                />
+            )}
+
+            <section>
+                <h2 className="text-xl xs:text-2xl md:text-3xl font-bold uppercase text-accentDarkPrimary">
+                    Summary
+                </h2>
+                <p className="text-base md:text-xl leading-relaxed text-justify text-dark/80 dark:text-light/80">
+                    {post.summary}
+                </p>
+            </section>
+
+            {post.author && (
+                <section className="px-2 sm:px-8 md:px-12 flex gap-2 xs:gap-4 sm:gap-6 items-start xs:items-center justify-start">
+                    {post.author.image && (
+                        <Image
+                            src={urlFor(post.author.image)}
+                            width={200}
+                            height={200}
+                            alt="author"
+                            className="object-cover rounded-full h-12 w-12 sm:h-24 sm:w-24"
+                        />
+                    )}
+                    <div className="flex flex-col gap-1">
+                        <h3 className="text-xl font-bold text-dark dark:text-light">{post.author.name}</h3>
+                        <p className="italic text-xs xs:text-sm sm:text-base text-dark/80 dark:text-light/80">
+                            {post.author.bio}
+                        </p>
+                    </div>
+                </section>
+            )}
+
+            <section className="text-lg leading-normal text-dark/80 dark:text-light/80 prose-h4:text-accentDarkPrimary prose-h4:text-3xl prose-h4:font-bold prose-li:list-disc prose-li:list-inside prose-li:marker:text-accentDarkSecondary prose-strong:text-dark dark:prose-strong:text-white">
+                <PortableText value={post.content} />
+            </section>
+        </article>
     );
-  }
-
-  return (
-    <article className="mt-12 mb-24 px-2 2xl:px-12 flex flex-col gap-y-8">
-      <h1 className="text-xl xs:text-3xl lg:text-5xl font-bold text-dark dark:text-light mt-10">
-        {post.title}
-      </h1>
-
-      {post.image && (
-        <Image
-          src={urlFor(post.image)}
-          width={500}
-          height={500}
-          alt="Featured image"
-          className="rounded"
-        />
-      )}
-
-      <section>
-        <h2 className="text-xl xs:text-2xl md:text-3xl font-bold uppercase text-accentDarkPrimary">
-          Summary
-        </h2>
-        <p className="text-base md:text-xl leading-relaxed text-justify text-dark/80 dark:text-light/80">
-          {post.summary}
-        </p>
-      </section>
-
-      {post.author && (
-        <section className="px-2 sm:px-8 md:px-12 flex gap-2 xs:gap-4 sm:gap-6 items-start xs:items-center justify-start">
-          {post.author.image && (
-            <Image
-              src={urlFor(post.author.image)}
-              width={200}
-              height={200}
-              alt="author"
-              className="object-cover rounded-full h-12 w-12 sm:h-24 sm:w-24"
-            />
-          )}
-          <div className="flex flex-col gap-1">
-            <h3 className="text-xl font-bold text-dark dark:text-light">{post.author.name}</h3>
-            <p className="italic text-xs xs:text-sm sm:text-base text-dark/80 dark:text-light/80">
-              {post.author.bio}
-            </p>
-          </div>
-        </section>
-      )}
-
-      <section className="text-lg leading-normal text-dark/80 dark:text-light/80 prose-h4:text-accentDarkPrimary prose-h4:text-3xl prose-h4:font-bold prose-li:list-disc prose-li:list-inside prose-li:marker:text-accentDarkSecondary prose-strong:text-dark dark:prose-strong:text-white">
-        <PortableText value={post.content} />
-      </section>
-    </article>
-  );
 };
-
 
 export default Page;
