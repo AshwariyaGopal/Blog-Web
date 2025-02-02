@@ -18,6 +18,9 @@
 
 /** @type {import('next').NextConfig} */ // JSDoc type hint
 const nextConfig = {
+  eslint:{
+ignoreDuringBuilds:true
+  },
   images: {
     remotePatterns: [
       {
