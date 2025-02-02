@@ -431,7 +431,7 @@
 import { urlFor } from "../../../sanity/lib/image";
 import { client } from "../../../sanity/lib/client";
 import { PortableText } from "@portabletext/react";
-import { Metadata } from "next";
+import { Metadata } from "next"; // Correct import for Server Component
 
 type Author = {
   bio?: string;
@@ -478,8 +478,9 @@ export default async function BlogPostPage({ params, searchParams }: { params: {
   const imageUrl = post?.image?.asset?._ref ? urlFor(post.image.asset._ref) : null;
 
   // Example of using searchParams:
-  const searchQuery = searchParams.q; // Accessing a query parameter named "q"
-  console.log("Search Query:", searchQuery); // Keep this for debugging
+  const searchQuery = searchParams?.q;
+  console.log("Search Query:", searchQuery);
+  console.log("Post Data:", post); // Keep this for debugging!
 
   return (
     <div>
