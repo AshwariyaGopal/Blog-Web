@@ -554,6 +554,7 @@ type BlogPost = {
   author?: Author;
 };
 
+// Fetching the post
 async function fetchPost(slug: string): Promise<BlogPost | null> {
   const query = `*[_type == "post" && slug.current == $slug][0]{
     title,
@@ -566,7 +567,12 @@ async function fetchPost(slug: string): Promise<BlogPost | null> {
   return client.fetch(query, { slug });
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+// Correct type for params (no Promise)
+interface PageProps {
+  params: { slug: string }; // Ensure this is a simple object
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const post = await fetchPost(params.slug);
   return {
     title: post?.title || "Post Not Found",
@@ -574,12 +580,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-interface PageProps {
-  params: { slug: string };
-  searchParams: Record<string, string | string[] | undefined>;
-}
-
-export default async function BlogPostPage({ params, searchParams }: PageProps) {
+export default async function BlogPostPage({ params }: PageProps) {
   const post = await fetchPost(params.slug);
 
   if (!post) {
@@ -637,3 +638,4 @@ export default async function BlogPostPage({ params, searchParams }: PageProps) 
     </div>
   );
 }
+
