@@ -2,21 +2,17 @@ import Image from "next/image";
 import { client } from "../../../sanity/lib/client";
 import { urlFor } from "../../../sanity/lib/image";
 import { PortableText } from "@portabletext/react";
-import { notFound, useRouter } from "next/navigation";
+import CommentBox from "@/app/components/Comment";
 // // import { components } from "@/components/CustomComponent";
 
-export default async function Page({ params }: { params: { slug: string } }) {
-  // const { slug } = params;
-  const query = `*[_type=='post' && slug.current == $slug]{
-    title, summary, image, content,
-    author->{bio, image, name}
-  }[0]`;
-  const { slug } = await params;
-  const post = await client.fetch(query, { slug });
+export default async function page({ params }: { params: { slug: string } }) {
+  const { slug } = params;
 
-  if (!post) {
-    notFound(); // ✅ Show 404 if no post is found
-  }
+  const query = `*[_type=='post' && slug.current=="${slug}"]{
+    title,summary,image,content,
+      author->{bio,image,name}
+  }[0]`;
+  const post = await client.fetch(query);
 
   return (
     <article className="mt-12 mb-24 px-2 2xl:px-12 flex flex-col gap-y-8">
@@ -67,6 +63,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
 
       <section className="text-lg leading-normal text-dark/80 dark:text-light/80 prose-h4:text-accentDarkPrimary prose-h4:text-3xl prose-h4:font-bold prose-li:list-disc prose-li:list-inside prose-li:marker:text-accentDarkSecondary prose-strong:text-dark dark:prose-strong:text-white">
         <PortableText value={post.content} />
+        <CommentBox />
       </section>
     </article>
   );
