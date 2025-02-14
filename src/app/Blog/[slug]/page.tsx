@@ -2,29 +2,20 @@ import Image from "next/image";
 import { client } from "../../../sanity/lib/client";
 import { urlFor } from "../../../sanity/lib/image";
 import { PortableText } from "@portabletext/react";
+import { notFound, useRouter } from "next/navigation";
 // // import { components } from "@/components/CustomComponent";
-export default async function Page(props: { params: { slug: string } }) {
-  const params = await props.params; // ✅ Await params explicitly
-  if (!params || !params.slug) {
-    return <div className="text-center text-red-500">Invalid Post Slug</div>;
-  }
 
-  const slug = params.slug; // ✅ Extract slug after ensuring params exists
-
+export default async function Page({ params }: { params: { slug: string } }) {
+  // const { slug } = params;
   const query = `*[_type=='post' && slug.current == $slug]{
     title, summary, image, content,
     author->{bio, image, name}
   }[0]`;
-
-  const post = await client.fetch(query, { slug }); // ✅ Pass slug correctly
+  const { slug } = await params;
+  const post = await client.fetch(query, { slug });
 
   if (!post) {
-    return (
-      <div className="text-center text-red-500">
-        <h2>Post Not Found</h2>
-        <p>Sorry, the requested post does not exist.</p>
-      </div>
-    );
+    notFound(); // ✅ Show 404 if no post is found
   }
 
   return (
@@ -38,7 +29,7 @@ export default async function Page(props: { params: { slug: string } }) {
           src={urlFor(post.image)}
           width={500}
           height={500}
-          alt="AI for everyone"
+          alt={post.title}
           className="rounded"
         />
       )}
@@ -59,7 +50,7 @@ export default async function Page(props: { params: { slug: string } }) {
               src={urlFor(post.author.image)}
               width={200}
               height={200}
-              alt="author"
+              alt={post.author.name}
               className="object-cover rounded-full h-12 w-12 sm:h-24 sm:w-24"
             />
           )}
