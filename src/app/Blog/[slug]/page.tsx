@@ -70,27 +70,30 @@
 // }
 
 import Image from "next/image";
+import { notFound } from "next/navigation";
 import { client } from "../../../sanity/lib/client";
 import { urlFor } from "../../../sanity/lib/image";
 import { PortableText } from "@portabletext/react";
 import CommentBox from "@/app/components/Comment";
 
-// Interface for Params
-interface BlogParams {
-  params: {
-    slug: string;
-  };
+interface PageProps {
+  params: Promise<{ slug: string }>; // Handling params as a Promise
 }
 
-export default async function Page({ params }: BlogParams) {
-  const { slug } = params;
+export default async function Page({ params }: PageProps) {
+  const resolvedParams = await params; // ✅ Await the params
+  console.log(resolvedParams); // ✅ Now params should be correctly logged
+
+  const { slug } = resolvedParams;
 
   const query = `*[_type=='post' && slug.current=="${slug}"]{
-    title,summary,image,content,
-    author->{bio,image,name}
+    title, summary, image, content,
+    author->{bio, image, name}
   }[0]`;
 
   const post = await client.fetch(query);
+
+  if (!post) return notFound(); // ✅ Handle invalid slugs with 404 error
 
   return (
     <article className="mt-12 mb-24 px-2 2xl:px-12 flex flex-col gap-y-8">
