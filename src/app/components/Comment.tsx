@@ -14,7 +14,7 @@ const CommentBox = () => {
   }, []);
 
   // Function to add a new comment
-  const addComments = () => {
+  const addComment = () => {
     if (comment.trim() !== '') {
       const updatedComments = [...comments, comment];
       setComments(updatedComments);
@@ -23,31 +23,52 @@ const CommentBox = () => {
     }
   };
 
+  // Function to delete a comment
+  const deleteComment = (index: number) => {
+    const updatedComments = comments.filter((_, i) => i !== index);
+    setComments(updatedComments);
+    localStorage.setItem('comments', JSON.stringify(updatedComments)); // Update localStorage
+  };
+
   return (
-    <div>
-      <h1 className="text-3x1 font-bold mt-4 text-purple-500">Comment Box</h1>
+    <div className="max-w-xl mx-auto p-4 border border-gray-300 rounded-lg shadow-lg bg-white mt-10">
+      <h1 className="text-2xl font-bold text-black mb-4">Comment Box</h1>
+      
       <input
         type="text"
         value={comment}
         onChange={(e) => setComment(e.target.value)}
-        placeholder="Write your comment"
-        className="border border-purple-500 mt-3 w-80 p-2"
+        placeholder="Write your comment..."
+        className="border border-gray-400 w-full p-2 rounded-lg"
+        onKeyDown={(e) => e.key === 'Enter' && addComment()} // Add comment on Enter key
       />
-      <br />
+      
       <button
-        className="bg-purple-400 text-white w-36 mt-3"
-        onClick={addComments}
+        className="bg-black text-white w-full mt-3 py-2 rounded-lg hover:bg-blue-800"
+        onClick={addComment}
       >
         Add Comment
       </button>
-      <div className="mt-2">
-        <h2>All Comments:</h2>
+
+      <div className="mt-4">
+        <h2 className="font-semibold">All Comments:</h2>
         {comments.length === 0 ? (
-          <p>No comments yet. Add your comment!</p>
+          <p className="text-gray-500">No comments yet. Add your comment!</p>
         ) : (
-          <ul>
+          <ul className="mt-2 space-y-2">
             {comments.map((data, index) => (
-              <li key={index}>{data}</li>
+              <li
+                key={index}
+                className="flex justify-between items-center border-b py-2"
+              >
+                <span>{data}</span>
+                <button
+                  onClick={() => deleteComment(index)}
+                  className="bg-red-500 text-white px-2 py-1 text-sm rounded hover:bg-red-600"
+                >
+                  Delete
+                </button>
+              </li>
             ))}
           </ul>
         )}

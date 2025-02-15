@@ -76,6 +76,8 @@ import { urlFor } from "../../../sanity/lib/image";
 import { PortableText } from "@portabletext/react";
 import CommentBox from "@/app/components/Comment";
 
+
+
 interface PageProps {
   params: Promise<{ slug: string }>; // Handling params as a Promise
 }
@@ -96,7 +98,7 @@ export default async function Page({ params }: PageProps) {
   if (!post) return notFound(); // ✅ Handle invalid slugs with 404 error
 
   return (
-    <article className="mt-12 mb-24 px-2 2xl:px-12 flex flex-col gap-y-8">
+    <article className="mt-24 mb-24 px-2 2xl:px-12 flex flex-col gap-y-8">
       <h1 className="text-xl xs:text-3xl lg:text-5xl font-bold text-dark dark:text-light">
         {post.title}
       </h1>
@@ -144,6 +146,7 @@ export default async function Page({ params }: PageProps) {
 
       <section className="text-lg leading-normal text-dark/80 dark:text-light/80 prose-h4:text-accentDarkPrimary prose-h4:text-3xl prose-h4:font-bold prose-li:list-disc prose-li:list-inside prose-li:marker:text-accentDarkSecondary prose-strong:text-dark dark:prose-strong:text-white">
         <PortableText value={post.content} />
+        
         <CommentBox />
       </section>
     </article>
